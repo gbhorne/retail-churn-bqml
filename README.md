@@ -5,7 +5,9 @@ Generates 200,000 synthetic retail customers across six behavioral segments,
 trains a logistic regression classifier entirely in SQL using BigQuery ML,
 and scores all customers with churn probability and RFM segment labels.
 
-Companion repo: https://github.com/gbhorne/retail-churn-pytorch
+This model serves as the SQL-native baseline for comparison against PyTorch
+MLP and TabNet models in the companion repo:
+https://github.com/gbhorne/retail-churn-pytorch
 
 ---
 
@@ -18,10 +20,10 @@ Companion repo: https://github.com/gbhorne/retail-churn-pytorch
 | Churn rule | Probabilistic per segment (see table below) |
 | Scoring timestamp | End of observation window |
 
-Churn labels are assigned probabilistically per segment during synthetic
-data generation, not derived deterministically from any single feature.
-This avoids the leakage pattern where recency_days directly determines
-the churn label.
+In this synthetic dataset, churn represents a probabilistic likelihood of
+inactivity based on behavioral segment rather than a fixed time-based definition.
+Because churn labels are assigned probabilistically and not derived from recency,
+no feature directly determines the target, avoiding feature leakage.
 
 | Segment | Churn probability |
 |---------|------------------|
@@ -38,9 +40,6 @@ be computed strictly before that cutoff to prevent leakage:
 
 ```sql
 -- Production pattern: enforce feature cutoff before label window
--- feature_cutoff = label_date - 90 days
--- All features computed from events WHERE event_date < feature_cutoff
--- Churn label = no purchase between feature_cutoff and label_date
 WITH feature_cutoff AS (
   SELECT DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) AS cutoff
 )
@@ -61,20 +60,22 @@ GROUP BY user_id
 |-------|---------|-----------|--------|----|---------------|
 | BQML logistic regression | 0.826 | 0.812 | 0.654 | 0.725 | 86s |
 
-Verify from scratch using the reproducible evaluation queries below.
+PR-AUC can be derived from ML.ROC_CURVE using the reproducible query below.
+Verify all metrics from scratch using the evaluation queries in this README.
 
 ---
 
 ## Data split note
 
 This pipeline uses RANDOM data split (data_split_method = RANDOM).
-In a production churn model with real transaction data, a time-based
-split must be used to ensure the model is evaluated on future data
-it has never seen during training:
+Because customer histories are synthetically generated without a temporal
+prediction task, a random stratified split is appropriate for this experiment.
+In a production churn model with real transaction data, a time-based split
+must be used to ensure the model is evaluated on future data it has never
+seen during training:
 
 ```sql
 -- Production pattern: time-based split
--- Train on data before cutoff, evaluate on data after
 CREATE OR REPLACE MODEL `project.dataset.churn_model`
 OPTIONS(
   model_type = 'LOGISTIC_REG',
@@ -86,9 +87,6 @@ AS SELECT
   IF(last_order_date >= '2024-01-01', TRUE, FALSE) AS is_eval
 FROM `project.dataset.rfm_scores`
 ```
-
-RANDOM split is used here because the synthetic dataset has no temporal
-ordering that would make time-based splitting meaningful.
 
 ---
 
