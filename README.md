@@ -1,4 +1,4 @@
-# retail-churn-bigquery-ml
+# Retail Churn BigQuery ML
 
 Retail customer churn prediction using BigQuery ML logistic regression.
 Generates 200,000 synthetic retail customers across six behavioral segments,
@@ -129,8 +129,8 @@ or serving layers to maintain. Scoring runs as a SQL query on a schedule.
 ### 1. Clone and install
 
 ```
-git clone https://github.com/gbhorne/retail-churn-bigquery-ml.git
-cd retail-churn-bigquery-ml
+git clone https://github.com/gbhorne/Retail Churn BigQuery ML.git
+cd Retail Churn BigQuery ML
 python -m venv .venv
 
 # Windows PowerShell
