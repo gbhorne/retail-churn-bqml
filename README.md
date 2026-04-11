@@ -26,43 +26,7 @@ overhead. This repo proves that argument with working code and real metrics.
 
 ## Pipeline architecture
 
-```
-+-----------------------+     +---------------------+     +--------------------+
-|  Synthetic generator  |     |   BigQuery dataset   |     |  rfm_scores table  |
-|  (Python script)      +---->+  customer_intelligence+---->+  200,000 customers |
-|  generate_synthetic   |     |                     |     |  13 feature columns|
-|  _data.py             |     |                     |     |  + churned label   |
-+-----------------------+     +---------------------+     +--------+-----------+
-                                                                   |
-                                          +------------------------+
-                                          |
-                                          v
-                              +-----------+------------+
-                              |   CREATE MODEL          |
-                              |   LOGISTIC_REG          |
-                              |   auto_class_weights    |
-                              |   l1_reg + l2_reg       |
-                              |   RANDOM split 80/20    |
-                              +-----------+------------+
-                                          |
-                          +---------------+---------------+
-                          |                               |
-                          v                               v
-              +-----------+-------+           +-----------+--------+
-              |  ML.EVALUATE      |           |  ML.PREDICT         |
-              |  ROC-AUC: 0.826   |           |  200,000 customers  |
-              |  Precision: 0.812 |           |  churn_probability  |
-              |  Recall: 0.654    |           |  churn_risk tier    |
-              |  F1: 0.725        |           |  rfm_segment label  |
-              +-------------------+           +-----------+--------+
-                                                          |
-                                                          v
-                                            +-------------+-----------+
-                                            |  bqml_churn_scores      |
-                                            |  Output table           |
-                                            |  Queryable by marketing |
-                                            +-------------------------+
-```
+![Pipeline](docs/pipeline.svg)
 
 ---
 
