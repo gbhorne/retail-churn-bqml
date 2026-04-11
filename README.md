@@ -124,51 +124,6 @@ or serving layers to maintain. Scoring runs as a SQL query on a schedule.
 
 ---
 
-## Setup
-
-### 1. Clone and install
-
-```
-git clone https://github.com/gbhorne/Retail Churn BigQuery ML.git
-cd Retail Churn BigQuery ML
-python -m venv .venv
-
-# Windows PowerShell
-.venv\Scripts\Activate.ps1
-
-# macOS / Linux
-source .venv/bin/activate
-
-pip install -r requirements.txt
-```
-
-### 2. Authenticate to GCP
-
-```
-gcloud auth application-default login
-gcloud auth login
-gcloud config set project customer-churn-492703
-gcloud auth application-default set-quota-project customer-churn-492703
-```
-
-### 3. Generate synthetic data
-
-```
-python generate_synthetic_data.py
-```
-
-### 4. Run SQL pipeline in order
-
-```
-.\bq_run.ps1 sql\01_rfm_features.sql
-.\bq_run.ps1 sql\02_create_churn_model.sql
-.\bq_run.ps1 sql\03_evaluate_model.sql
-.\bq_run.ps1 sql\04_score_customers.sql
-.\bq_run.ps1 sql\05_validate_scores.sql
-```
-
----
-
 ## Pipeline
 
 | File | Purpose |
